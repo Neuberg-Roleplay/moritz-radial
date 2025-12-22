@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Moritz Radial</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="radial-root" class="hidden">
+        <!-- Hauptmenü -->
+        <div id="main-menu" class="radial-overlay hidden">
+            <div class="main-circle">
+                <div class="main-btn" data-slot="1"></div>
+                <div class="main-btn" data-slot="2"></div>
+                <div class="main-btn" data-slot="3"></div>
+                <div class="main-btn" data-slot="4"></div>
+            </div>
+        </div>
+
+        <!-- Sub-Menü -->
+        <div id="sub-menu" class="radial-overlay hidden">
+            <div class="sub-slices" id="sub-slices"></div>
+            <div class="sub-center">
+                <img id="sub-logo" src="" alt="logo">
+            </div>
+        </div>
+
+        <!-- Extras-Menü -->
+        <div id="extras-menu" class="radial-overlay hidden">
+            <div class="sub-slices" id="extras-slices"></div>
+            <div class="sub-center">
+                <img id="extras-logo" src="" alt="extras">
+            </div>
+        </div>
+
+        <!-- Input-Panel -->
+        <div id="input-panel" class="input-panel hidden">
+            <div class="input-inner">
+                <div id="input-fields"></div>
+                <div class="input-buttons">
+                    <button id="btn-cancel">Abbrechen</button>
+                    <button id="btn-submit">Absenden</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

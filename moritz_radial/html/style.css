@@ -1,0 +1,277 @@
+* {
+    box-sizing: border-box;
+    user-select: none;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Root: klickbar nur für Menus */
+#radial-root {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+.radial-overlay,
+.input-panel {
+    pointer-events: auto;
+}
+
+/* ===== HAUPTMENÜ ===== */
+
+#main-menu {
+    position: absolute;
+    inset: 0;
+}
+
+.main-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40vh;
+    height: 40vh;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(0,0,0,0.4);
+    box-shadow: 0 0 25px rgba(0,0,0,0.9);
+    overflow: hidden;
+}
+
+/* 4 Viertel */
+.main-btn {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    background: rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s ease-out;
+}
+
+.main-btn img {
+    max-width: 60%;
+    max-height: 60%;
+    object-fit: contain;
+    opacity: 0.95;
+}
+
+.main-btn::after { content: none; }
+
+.main-btn[data-slot="1"] {
+    top: 0; left: 0;
+    border-top-left-radius: 100%;
+}
+.main-btn[data-slot="2"] {
+    top: 0; right: 0;
+    border-top-right-radius: 100%;
+}
+.main-btn[data-slot="3"] {
+    bottom: 0; left: 0;
+    border-bottom-left-radius: 100%;
+}
+.main-btn[data-slot="4"] {
+    bottom: 0; right: 0;
+    border-bottom-right-radius: 100%;
+}
+
+.main-btn.keyboard-selected,
+.main-btn:hover {
+    background: rgba(255,255,255,0.18);
+}
+
+/* ===== SUB-RADIAL ===== */
+
+#sub-menu,
+#extras-menu {
+    position: absolute;
+    inset: 0;
+}
+
+.sub-slices {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 45vh;
+    height: 45vh;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(0,0,0,0.4);              /* gleicher Vibe wie Hauptmenu */
+    box-shadow: 0 0 25px rgba(0,0,0,0.9);
+}
+
+.sub-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18vh;
+    height: 18vh;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    box-shadow: 0 0 18px rgba(0,0,0,1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.sub-center img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.95;
+}
+
+.slice {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    pointer-events: none; /* nur das Dreieck selbst fängt Klicks */
+}
+
+
+/* Jeder Slice ist der ganze Kreis, dreht sich nur um die Mitte */
+/* umgedrehtes Trapez: groß innen, klein außen */
+.slice-inner {
+    position: absolute;
+
+    /* etwas näher an den Center + 20% kürzer */
+    top: -4%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 25%;
+    height: 48%;
+
+    background: rgba(0,0,0,0.35);
+
+    /* NEUES Trapez – oben breiter, unten schmaler */
+    clip-path: polygon(
+        0%   0%,   /* oben links -> breit */
+        100% 0%,   /* oben rechts -> breit */
+        75%  100%, /* unten rechts -> schmal */
+        25%  100%  /* unten links -> schmal */
+    );
+
+    border-radius: 1.5vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0 0 8px rgba(0,0,0,0.9);
+    transition: background 0.12s ease-out,
+                box-shadow 0.12s ease-out,
+                transform 0.12s ease-out;
+
+    pointer-events: auto;
+    overflow: visible;
+}
+
+/* Text im Slice */
+.slice-inner span {
+    display: block;
+    margin: 0;
+    padding: 0.4vh 0.6vh;
+    text-align: center;
+    color: rgba(255,255,255,0.95);
+    line-height: 1.2;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Keyboard-Auswahl */
+.slice.keyboard-selected .slice-inner {
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 0 10px rgba(255,255,255,0.6);
+    transform: translateX(-50%) translateY(-0.3vh);
+}
+
+/* Maus-Auswahl (überschreibt Keyboard) */
+.slice.mouse-selected .slice-inner,
+.slice-inner:hover {
+    background: rgba(255,255,255,0.26);
+    box-shadow: 0 0 14px rgba(255,255,255,0.9);
+    transform: translateX(-50%) translateY(-0.3vh);
+}
+
+/* ===== INPUT PANEL ===== */
+
+.input-panel {
+    position: absolute;
+    right: 5vh;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 35vh;
+    background: rgba(0,0,0,0.8);
+    border-radius: 2vh;
+    box-shadow: 0 0 25px rgba(0,0,0,0.9);
+    padding: 2vh;
+}
+
+.input-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5vh;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4vh;
+}
+
+.input-field label {
+    color: rgba(255,255,255,0.92);
+    font-size: 1.4vh;
+}
+
+.input-field input {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    border-radius: 1vh;
+    padding: 0.8vh 1vh;
+    color: #fff;
+    font-size: 1.4vh;
+}
+
+.input-field input:focus {
+    outline: none;
+    background: rgba(255,255,255,0.16);
+}
+
+.input-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1vh;
+    margin-top: 1vh;
+}
+
+.input-buttons button {
+    flex: 1;
+    border: none;
+    border-radius: 1.2vh;
+    padding: 0.9vh 0;
+    font-size: 1.5vh;
+    cursor: pointer;
+    color: #fff;
+}
+
+
+#btn-cancel { background: rgba(200,60,60,0.9); }
+#btn-submit { background: rgba(60,200,100,0.95); }
