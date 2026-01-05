@@ -185,9 +185,14 @@ Config.JobMenus = {
         logo = "img/gruen.png",
    	items = {
         { label = "Adminmode",      command = "ad",                      values = {},      jobs = {} },
-        { label = "Ticket Menu",        command = "tickets",                    values = {},      jobs = {}, textRotation = -90 },
-       	{ label = "Lizenz entziehen",  command = "revokelicense %value1 %value2", values = { "id", "text" }, jobs = {}, textRotation = -90 },
-       	{ label = "Lizenz \n vergeben",  command = "givelicense %value1 %value2", values = { "id", "text" }, jobs = {}, textRotation = 180 },
+        { label = "Adminweste",      command = "aw",                      values = {},      jobs = {},textRotation = -90 },
+        { label = "Outfit",        command = "moritzadminoutfit",                    values = {},      jobs = {},textRotation = -90 },
+        { label = "Player Blips",        command = "moritzadminblips",                    values = {},      jobs = {},textRotation = -90 },
+        { label = "No Clip",        command = "moritzadminnoclip",                    values = {},      jobs = {},textRotation = -90 },
+       	{ label = "No Clip \n Speed: 1-4",  command = "moritzadminnoclipspeed %value1", values = { "id" }, jobs = {}, textRotation = 180 },
+       	{ label = "Ghost Mode",  command = "moritzadminghost", jobs = {}, textRotation = 180 },
+       	{ label = "Lizenz entziehen",  command = "revokelicense %value1 %value2", values = { "id", "text" }, jobs = {}, textRotation = 90 },
+       	{ label = "Lizenz \n vergeben",  command = "givelicense %value1 %value2", values = { "id", "text" }, jobs = {}, textRotation = 90 },
         { label = "Zone Erstellen",        command = "zoneerstellen",                    values = {},      jobs = {},textRotation = 90 },
         { label = "Zone Entfernen",        command = "zonerem",                    values = {},      jobs = {},textRotation = 90 }
     	}

@@ -23,12 +23,8 @@ RegisterNetEvent('esx:setJob', function(job)
     currentJob = job.name
 end)
 
--- Command so ausführen, als würde der Spieler es selber in den Chat schreiben
 RegisterNetEvent('moritz_radial:runCommand', function(cmd)
     if not cmd or cmd == "" then return end
-    -- NICHT anfassen, kein Slash hinzufügen, nix:
-    -- wenn du "panic" in der Config hast, wird genau "panic" ausgeführt
-    -- wenn du "/handsup" reinschreibst, wird genau "/handsup" ausgeführt
     ExecuteCommand(cmd)
 end)
 
@@ -57,7 +53,6 @@ local function ToggleRadial()
     if isOpen then CloseRadial() else OpenMainRadial() end
 end
 
--- Taste f3 (170)
 CreateThread(function()
     while true do
         Wait(0)
@@ -146,7 +141,6 @@ RegisterNUICallback("submitInputs", function(data, cb)
     local index    = data.index
     local valuesIn = data.values or {}
 
-    -- baue saubere Liste 1..n
     local values = {}
     for k, v in pairs(valuesIn) do
         local num = tonumber(k)
@@ -155,7 +149,6 @@ RegisterNUICallback("submitInputs", function(data, cb)
         end
     end
 
-    -- ID check (wenn value1 eine Zahl sein soll)
     if values[1] and values[1] ~= "" and not tonumber(values[1]) then
         ESX.ShowNotification("~r~ID muss eine Zahl sein.")
         cb("error")
@@ -168,15 +161,18 @@ RegisterNUICallback("submitInputs", function(data, cb)
 end)
 
 RegisterNUICallback("toggleExtra", function(data, cb)
-    local extraId = data.idx
+    local extraId = tonumber(data.idx)
+    if not extraId then cb("ok") return end
+
     local ped = PlayerPedId()
     local veh = GetVehiclePedIsIn(ped, false)
 
     if veh ~= 0 then
-        local on = IsVehicleExtraTurnedOn(veh, extraId) == 1
-        SetVehicleExtra(veh, extraId, on and 1 or 0)
+        local currentlyOn = (IsVehicleExtraTurnedOn(veh, extraId) == 1)
+        SetVehicleExtra(veh, extraId, currentlyOn and 1 or 0)
     end
 
+    -- refresh menu (liefert saubere on=true/false)
     if lastExtraItem then
         openExtrasMenu(lastExtraItem)
     end
@@ -208,13 +204,13 @@ end
 function openVehicleMenu()
     local items = {}
     for i, item in ipairs(Config.VehicleMenu.items) do
-    items[#items+1] = {
-        index       = i,
-        label       = item.label,
-        type        = item.type or "command",
-        needsInput  = (item.values and #item.values > 0) or false,
-        rotation    = item.textRotation or 0
-    }
+        items[#items+1] = {
+            index       = i,
+            label       = item.label,
+            type        = item.type or "command",
+            needsInput  = (item.values and #item.values > 0) or false,
+            rotation    = item.textRotation or 0
+        }
     end
 
     SendNuiMessage(json.encode({
@@ -241,12 +237,12 @@ function openJobMenu()
 
     local items = {}
     for i, item in ipairs(jobCfg.items) do
-    items[#items+1] = {
-        index       = i,
-        label       = item.label,
-        needsInput  = (item.values and #item.values > 0) or false,
-        rotation    = item.textRotation or 0
-    }
+        items[#items+1] = {
+            index       = i,
+            label       = item.label,
+            needsInput  = (item.values and #item.values > 0) or false,
+            rotation    = item.textRotation or 0
+        }
     end
 
     SendNuiMessage(json.encode({
@@ -282,10 +278,11 @@ function openExtrasMenu(extraItem)
 
     for i = 1, maxExtras do
         if DoesExtraExist(veh, i) then
-            local on = IsVehicleExtraTurnedOn(veh, i) == 1
+            local on = (IsVehicleExtraTurnedOn(veh, i) == 1)
             extras[#extras+1] = {
                 idx   = i,
-                label = ("Extra %d (%s)"):format(i, on and "ON" or "OFF")
+                on    = on,
+                label = ("Extra %d"):format(i)
             }
         end
     end

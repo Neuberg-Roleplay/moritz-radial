@@ -11,7 +11,7 @@ const mainMenu      = document.getElementById('main-menu');
 const subMenu       = document.getElementById('sub-menu');
 const extrasMenu    = document.getElementById('extras-menu');
 const subSlices     = document.getElementById('sub-slices');
-const extrasSlices  = document.getElementById('extras-slices');
+const extrasList    = document.getElementById('extras-list');
 const subLogo       = document.getElementById('sub-logo');
 const extrasLogo    = document.getElementById('extras-logo');
 const inputPanel    = document.getElementById('input-panel');
@@ -29,6 +29,20 @@ function closeAll() {
     currentSlices = [];
     selectedIndex = 0;
     pendingInput = null;
+}
+
+function normalizeBool(v) {
+    // akzeptiert: true/false, 1/0, "1"/"0", "true"/"false"
+    if (v === true) return true;
+    if (v === false) return false;
+    if (v === 1) return true;
+    if (v === 0) return false;
+    if (typeof v === 'string') {
+        const s = v.trim().toLowerCase();
+        if (s === 'true' || s === '1' || s === 'on' || s === 'ein') return true;
+        if (s === 'false' || s === '0' || s === 'off' || s === 'aus') return false;
+    }
+    return false;
 }
 
 window.addEventListener('message', (event) => {
@@ -113,13 +127,65 @@ function showExtras(logo, extras) {
     inputPanel.classList.add('hidden');
 
     extrasLogo.src = logo || '';
-    const items = extras.map(e => ({
-        index: e.idx,
-        label: e.label,
-        extraId: e.idx
-    }));
-    buildSlices(extrasSlices, items, 'extras');
+
+    // extras kommt als [{ idx, label, on }]
+    currentSlices = (extras || []).map((e, i) => {
+        const extraId = (e && (e.idx ?? e.id ?? e.extraId)) ?? (i + 1);
+        const onVal   = (e && (e.on ?? e.enabled ?? e.state)) ?? false;
+        return {
+            index: i + 1,
+            extraId: Number(extraId),
+            label: (e && e.label) ? String(e.label) : `Extra ${extraId}`,
+            on: normalizeBool(onVal)
+        };
+    });
+
+    selectedIndex = 0;
+    buildExtrasList();
     extrasMenu.classList.remove('hidden');
+}
+
+function buildExtrasList() {
+    extrasList.innerHTML = '';
+
+    if (!currentSlices || currentSlices.length === 0) return;
+
+    currentSlices.forEach((item, i) => {
+        const row = document.createElement('div');
+        row.className = 'extras-row';
+        row.dataset.index = String(i);
+
+        const left = document.createElement('div');
+        left.className = 'left';
+
+        const dot = document.createElement('div');
+        dot.className = 'status-dot ' + (item.on ? 'on' : 'off');
+
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.innerText = item.label || '';
+
+        left.appendChild(dot);
+        left.appendChild(label);
+
+        const state = document.createElement('div');
+        state.className = 'state';
+        state.innerText = item.on ? 'EIN' : 'AUS';
+
+        row.appendChild(left);
+        row.appendChild(state);
+
+        row.addEventListener('click', () => clickSlice(i));
+
+        row.addEventListener('mouseenter', () => {
+            selectedIndex = i;
+            highlightSlice();
+        });
+
+        extrasList.appendChild(row);
+    });
+
+    highlightSlice();
 }
 
 function buildSlices(container, items, menuType) {
@@ -133,7 +199,7 @@ function buildSlices(container, items, menuType) {
     const step = 360 / count;
 
     currentSlices.forEach((item, i) => {
-        const angle = 0 + step * i; // Start nach rechts
+        const angle = 0 + step * i;
 
         const slice = document.createElement('div');
         slice.className = 'slice';
@@ -144,22 +210,16 @@ function buildSlices(container, items, menuType) {
         const label = document.createElement('span');
         label.innerText = item.label || '';
 
-        // Rotationswert aus Config (0 / 90 / -90)
         const rot = item.rotation || 0;
         label.style.transform = `rotate(${rot}deg)`;
-	
-	// kleinen seitlichen Offset je nach Rotation setzen
-	label.style.marginLeft  = '0';
-	label.style.marginRight = '0';
 
-	if (rot === 90) {
-	    // Text etwas nach rechts schieben
- 	   label.style.marginLeft = '1.2vh';
-	} else if (rot === -90) {
- 	   // Text etwas nach links schieben
- 	   label.style.marginRight = '1.2vh';
-	}
-
+        label.style.marginLeft  = '0';
+        label.style.marginRight = '0';
+        if (rot === 90) {
+            label.style.marginLeft = '1.2vh';
+        } else if (rot === -90) {
+            label.style.marginRight = '1.2vh';
+        }
 
         inner.appendChild(label);
         slice.appendChild(inner);
@@ -167,22 +227,18 @@ function buildSlices(container, items, menuType) {
         slice.dataset.menuType = menuType;
         slice.dataset.index    = item.index;
 
-        // Rotation um Kreiszentrum
         slice.style.transform = `rotate(${angle}deg)`;
 
-        // Fontsize nach Länge des Texts
         const len = (item.label || '').length;
         let fontSize = 1.5;
         if (len > 10) fontSize = 1.3;
         if (len > 18) fontSize = 1.1;
         inner.style.fontSize = fontSize + 'vh';
 
-        // Klick
         inner.addEventListener('click', () => {
             clickSlice(i);
         });
 
-        // Maus-Hover (überschreibt Keyboard-Highlight)
         inner.addEventListener('mouseenter', () => {
             const allSlices = container.querySelectorAll('.slice');
             allSlices.forEach(el => el.classList.remove('mouse-selected'));
@@ -261,12 +317,11 @@ btnCancel.addEventListener('click', () => {
 btnSubmit.addEventListener('click', () => {
     if (!pendingInput) return;
 
-    // Werte als Objekt schicken, damit Lua schöne "1","2","3"-Keys bekommt
     const vals = {};
     const inputs = inputFieldsEl.querySelectorAll('input');
 
     inputs.forEach((inp, idx) => {
-        const key = String(idx + 1);      // "1", "2", "3"
+        const key = String(idx + 1);
         vals[key] = inp.value || "";
     });
 
@@ -287,6 +342,10 @@ function clickSlice(posIndex) {
     if (!item) return;
 
     if (currentMenu === 'extras') {
+        // UI sofort flippen (fühlt sich besser an)
+        item.on = !item.on;
+        buildExtrasList();
+
         fetch(`https://${resourceName}/toggleExtra`, {
             method: 'POST',
             body: JSON.stringify({ idx: item.extraId })
@@ -379,7 +438,21 @@ function updateMainHighlight() {
 }
 
 function highlightSlice() {
-    const container = (currentMenu === 'extras') ? extrasSlices : subSlices;
+    if (currentMenu === 'extras') {
+        const rows = extrasList.querySelectorAll('.extras-row');
+        rows.forEach((el, i) => {
+            if (i === selectedIndex) el.classList.add('keyboard-selected');
+            else el.classList.remove('keyboard-selected');
+        });
+
+        const sel = rows[selectedIndex];
+        if (sel && sel.scrollIntoView) {
+            sel.scrollIntoView({ block: 'nearest' });
+        }
+        return;
+    }
+
+    const container = subSlices;
     const sliceEls = container.querySelectorAll('.slice');
     sliceEls.forEach((el, i) => {
         if (i === selectedIndex) el.classList.add('keyboard-selected');
